@@ -44,6 +44,11 @@ public class SailingDebugTlwpOverlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
+		if (!active)
+		{
+			return null;
+		}
+
 		if (SailingUtil.isSailing(client) && boatTracker.getBoat() != null)
 		{
 			WorldPoint tlwp = SailingUtil.getTopLevelWorldPoint(client, boatTracker);
