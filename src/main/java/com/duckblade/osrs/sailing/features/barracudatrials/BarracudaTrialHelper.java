@@ -4,11 +4,15 @@ import com.duckblade.osrs.sailing.SailingConfig;
 import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
 import com.google.common.collect.ImmutableSet;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +21,9 @@ import net.runelite.api.GameObject;
 import net.runelite.api.ObjectComposition;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.WorldViewUnloaded;
+import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.Overlay;
@@ -31,7 +37,6 @@ public class BarracudaTrialHelper
 	extends Overlay
 	implements PluginLifecycleComponent
 {
-
 	private static final Set<Integer> LOST_CARGO_IDS = ImmutableSet.of(
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_1,
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_2,
@@ -223,10 +228,22 @@ public class BarracudaTrialHelper
 		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_36
 	);
 
-	private final Client client;
+
+	private static final TrialSegment[] segments = TrialSegment.values();
+	private final Set<Integer> trackedObjects = Stream.of(segments)
+		.flatMap(s -> Stream.concat(s.crates.stream(), s.interactables.stream().map(v -> v.object)))
+		.collect(ImmutableSet.toImmutableSet());
+
+	final Client client;
 
 	private final Set<GameObject> lostCargo = new HashSet<>();
 	private Color crateColour;
+
+	private final Map<Integer, GameObject> objects = new HashMap<>();
+
+	int trialDBRow = -1;
+	int trialRank;
+	boolean hasSupplyBoatItem;
 
 	@Inject
 	public BarracudaTrialHelper(Client client)
@@ -247,6 +264,7 @@ public class BarracudaTrialHelper
 	@Override
 	public void shutDown()
 	{
+		trialDBRow = -1;
 		lostCargo.clear();
 	}
 
@@ -257,6 +275,7 @@ public class BarracudaTrialHelper
 		{
 			lostCargo.clear();
 		}
+		objects.values().removeIf(go -> go.getWorldView() == e.getWorldView());
 	}
 
 	@Subscribe
@@ -267,12 +286,38 @@ public class BarracudaTrialHelper
 		{
 			lostCargo.add(o);
 		}
+		if (trackedObjects.contains(o.getId()))
+		{
+			objects.put(o.getId(), o);
+		}
 	}
 
 	@Subscribe
 	public void onGameObjectDespawned(GameObjectDespawned e)
 	{
 		lostCargo.remove(e.getGameObject());
+		objects.remove(e.getGameObject().getId());
+	}
+
+	@Subscribe
+	private void onScriptPreFired(ScriptPreFired ev)
+	{
+		if (ev.getScriptId() == 8605)
+		{
+			try
+			{
+				var args = ev.getScriptEvent().getArguments();
+
+				trialDBRow = (Integer) args[1];
+				hasSupplyBoatItem = 1 == (Integer) args[5];
+				trialRank = (Integer) args[6];
+			}
+			catch (Exception e)
+			{
+				log.warn("failed to get trial args", e);
+				trialDBRow = -1;
+			}
+		}
 	}
 
 	@Override
@@ -283,10 +328,63 @@ public class BarracudaTrialHelper
 			ObjectComposition def = SailingUtil.getTransformedObject(client, o);
 			if (def != null)
 			{
-				OverlayUtil.renderTileOverlay(g, o, "", crateColour);
+				OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+			}
+		}
+
+		if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+		{
+			if (!hasSupplyBoatItem)
+			{
+				render(g, TrialSegment.JJ3_LAP1_START, TrialSegment.JJ3_LAP1_SUPPLY);
+			}
+			else
+			{
+				render(g, TrialSegment.JJ3_LAP1_SUPPLY, TrialSegment.JJ3_LAP1_CIRCLE);
 			}
 		}
 
 		return null;
+	}
+
+	private void render(Graphics2D g, TrialSegment start, TrialSegment end)
+	{
+		for (int i = start.ordinal(); i <= end.ordinal(); i++)
+		{
+			var seg = segments[i];
+
+			g.setColor(Color.GREEN);
+			g.setStroke(new BasicStroke(2));
+			seg.path.render(client, g);
+
+			for (Integer crate : seg.crates)
+			{
+				GameObject o = objects.get(crate);
+				if (o != null)
+				{
+					ObjectComposition def = SailingUtil.getTransformedObject(client, o);
+					if (def != null)
+					{
+						OverlayUtil.renderTileOverlay(g, o, "", crateColour);
+					}
+				}
+			}
+
+			for (TrialInteractable interactable : seg.interactables)
+			{
+				GameObject o = objects.get(interactable.object);
+				if (o != null)
+				{
+					if (interactable.predicate.test(this))
+					{
+						var cb = o.getClickbox();
+						if (cb != null)
+						{
+							OverlayUtil.renderPolygon(g, cb, crateColour);
+						}
+					}
+				}
+			}
+		}
 	}
 }
