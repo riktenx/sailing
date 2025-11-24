@@ -17,6 +17,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -32,6 +33,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.OverheadTextChanged;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
@@ -58,7 +60,8 @@ public class CargoHoldTracker
 	private static final int UNKNOWN_ITEM = -1;
 
 	private static final String MSG_CREWMATE_SALVAGES = "Managed to hook some salvage! I'll put it in the cargo hold.";
-	private static final String MSG_CREWMATE_SALVAGE_FULL = "The cargo hold is full. I can't salvage anything."; // todo
+	private static final String MSG_CREWMATE_SALVAGE_FULL = "The cargo hold is full. I can't salvage anything.";
+	private static final String WIDGET_TEXT_CARGO_HOLD_EMPTY = "This cargo hold has no items to show here.";
 
 	private static final Set<Integer> CARGO_INVENTORY_IDS = ImmutableSet.of(
 		InventoryID.SAILING_BOAT_1_CARGOHOLD,
@@ -272,6 +275,22 @@ public class CargoHoldTracker
 		}
 	}
 
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded e)
+	{
+		if (e.getGroupId() != InterfaceID.SAILING_BOAT_CARGOHOLD)
+		{
+			return;
+		}
+
+		Widget itemsParent = client.getWidget(InterfaceID.SailingBoatCargohold.ITEMS);
+		Widget itemsChild = itemsParent != null ? itemsParent.getChild(0) : null;
+		if (itemsChild != null && Objects.equals(itemsChild.getText(), WIDGET_TEXT_CARGO_HOLD_EMPTY))
+		{
+			cargoHold().clear();
+		}
+	}
+
 	private void resetInventoryDeltaState()
 	{
 		pendingInventoryAction = 0;
@@ -327,8 +346,8 @@ public class CargoHoldTracker
 				continue;
 			}
 
-			int quantity = item.getQuantity();
-			ret.add(item.getId(), quantity);
+			// todo fix stackable items
+			ret.add(item.getId());
 		}
 
 		return ret;
