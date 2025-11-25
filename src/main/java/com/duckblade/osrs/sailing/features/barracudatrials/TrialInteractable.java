@@ -23,6 +23,6 @@ enum TrialInteractable
 
 	TrialInteractable(int object)
 	{
-		this(object, j -> j.hasSupplyBoatItem && j.client.getObjectDefinition(object).getImpostor().getActions()[0] != null);
+		this(object, j -> j.client.getObjectDefinition(object).getImpostor().getActions()[0] != null);
 	}
 }

@@ -103,12 +103,12 @@ public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleC
 
 		if (points.size() >= 2)
 		{
-			var path = new BoatPath.Builder();
+			var path = new ArrayList<BoatPath.Point>();
 			for (var wp : points)
 			{
-				path.pt(wp.getX(), wp.getY());
+				path.add(new BoatPath.Point(wp.getX(), wp.getY()));
 			}
-			path.build().render(client, g);
+			new BoatPath(List.of(path)).render(client, g, 0, path.get(path.size() - 1).end);
 		}
 
 		if (points.size() > 0)

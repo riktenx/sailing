@@ -228,18 +228,14 @@ public class BarracudaTrialHelper
 		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_36
 	);
 
-
-	private static final TrialSegment[] segments = TrialSegment.values();
-	private final Set<Integer> trackedObjects = Stream.of(segments)
-		.flatMap(s -> Stream.concat(s.crates.stream(), s.interactables.stream().map(v -> v.object)))
-		.collect(ImmutableSet.toImmutableSet());
+	private final Set<Integer> trackedObjects = LOST_CARGO_IDS;
 
 	final Client client;
 
 	private final Set<GameObject> lostCargo = new HashSet<>();
-	private Color crateColour;
+	Color crateColour;
 
-	private final Map<Integer, GameObject> objects = new HashMap<>();
+	final Map<Integer, GameObject> objects = new HashMap<>();
 
 	int trialDBRow = -1;
 	int trialRank;
@@ -334,57 +330,10 @@ public class BarracudaTrialHelper
 
 		if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
 		{
-			if (!hasSupplyBoatItem)
-			{
-				render(g, TrialSegment.JJ3_LAP1_START, TrialSegment.JJ3_LAP1_SUPPLY);
-			}
-			else
-			{
-				render(g, TrialSegment.JJ3_LAP1_SUPPLY, TrialSegment.JJ3_LAP1_CIRCLE);
-			}
+			new JubblyJiveTrial().render(g, this);
 		}
 
 		return null;
 	}
 
-	private void render(Graphics2D g, TrialSegment start, TrialSegment end)
-	{
-		for (int i = start.ordinal(); i <= end.ordinal(); i++)
-		{
-			var seg = segments[i];
-
-			g.setColor(Color.GREEN);
-			g.setStroke(new BasicStroke(2));
-			seg.path.render(client, g);
-
-			for (Integer crate : seg.crates)
-			{
-				GameObject o = objects.get(crate);
-				if (o != null)
-				{
-					ObjectComposition def = SailingUtil.getTransformedObject(client, o);
-					if (def != null)
-					{
-						OverlayUtil.renderTileOverlay(g, o, "", crateColour);
-					}
-				}
-			}
-
-			for (TrialInteractable interactable : seg.interactables)
-			{
-				GameObject o = objects.get(interactable.object);
-				if (o != null)
-				{
-					if (interactable.predicate.test(this))
-					{
-						var cb = o.getClickbox();
-						if (cb != null)
-						{
-							OverlayUtil.renderPolygon(g, cb, crateColour);
-						}
-					}
-				}
-			}
-		}
-	}
 }
