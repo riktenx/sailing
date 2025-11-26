@@ -162,9 +162,11 @@ public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleC
 					.getTargetLocation();
 				points.add(new Point2D.Float((lp.getX() / 128f) + wv.getBaseX(), (lp.getY() / 128.f) + wv.getBaseY()));
 				break;
+			case "btreset":
 			case "btr":
 				reset();
 				break;
+			case "btshift":
 			case "bts":
 				Point2D.Float lastPt = null;
 				int lastPtI = -1;
@@ -186,6 +188,9 @@ public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleC
 						}
 					}
 				}
+				break;
+			case "btcrate":
+				points.add(Integer.parseInt(ev.getArguments()[0]));
 				break;
 			case "btpop":
 				points.remove(points.size() - 1);

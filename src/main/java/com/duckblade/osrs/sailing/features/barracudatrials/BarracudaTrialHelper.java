@@ -45,7 +45,9 @@ public class BarracudaTrialHelper
 		trackedObjects.addAll(TrialData.CARGO_OBJECTS);
 
 		trackedObjects.add(
-			ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT
+			ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT,
+			ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_PARENT,
+			ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_PARENT
 		);
 
 		Stream.of(JubblyJivePillars.values())
@@ -163,7 +165,11 @@ public class BarracudaTrialHelper
 
 		if (config.barracudaHighlightInteractables())
 		{
-			if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+			if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_TEMPOR_TANTRUM)
+			{
+				renderTempor(g);
+			}
+			else if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
 			{
 				renderJubbly(g);
 			}
@@ -239,6 +245,18 @@ public class BarracudaTrialHelper
 		g.setColor(config.barracudaPathColor());
 
 		t.getBoatPath().render(client, g, range.start, range.end);
+	}
+
+	private void renderTempor(Graphics2D g)
+	{
+		if (hasSupplyBoatItem)
+		{
+			renderInteractable(g, ObjectID.SAILING_BT_TEMPOR_TANTRUM_NORTH_LOC_PARENT);
+		}
+		else
+		{
+			renderInteractable(g, ObjectID.SAILING_BT_TEMPOR_TANTRUM_SOUTH_LOC_PARENT);
+		}
 	}
 
 	private void renderJubbly(Graphics2D g)
