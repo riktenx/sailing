@@ -5,6 +5,7 @@ import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
 import com.google.common.collect.ImmutableSet;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.ObjectComposition;
+import net.runelite.api.Perspective;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.ScriptPreFired;
@@ -183,11 +185,7 @@ public class BarracudaTrialHelper
 			{
 				if (TrialData.CARGO_OBJECTS.contains(o.getId()))
 				{
-					ObjectComposition def = SailingUtil.getTransformedObject(client, o);
-					if (def != null)
-					{
-						OverlayUtil.renderTileOverlay(g, o, "", crateColor);
-					}
+					renderCrate(g, o, crateColor);
 				}
 			}
 		}
@@ -229,14 +227,11 @@ public class BarracudaTrialHelper
 					break;
 				}
 
+
 				var obj = objects.get(ckpt.objectID);
 				if (obj != null)
 				{
-					ObjectComposition def = SailingUtil.getTransformedObject(client, obj);
-					if (def != null)
-					{
-						OverlayUtil.renderTileOverlay(g, obj, "", crateColor);
-					}
+					renderCrate(g, obj, crateColor);
 				}
 			}
 		}
@@ -278,6 +273,19 @@ public class BarracudaTrialHelper
 			else if (jubblyBefore && state == 1)
 			{
 				renderInteractable(g, pillar.getObject());
+			}
+		}
+	}
+
+	private void renderCrate(Graphics2D g, GameObject obj, Color color)
+	{
+		ObjectComposition def = SailingUtil.getTransformedObject(client, obj);
+		if (def != null)
+		{
+			var poly = Perspective.getCanvasTileAreaPoly(client, obj.getLocalLocation(), 5);
+			if (poly != null)
+			{
+				OverlayUtil.renderPolygon(g, poly, color);
 			}
 		}
 	}

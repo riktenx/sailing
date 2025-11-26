@@ -127,16 +127,12 @@ class BoatPath
 
 						if (mag1 > 0 && mag2 > 0)
 						{
-							double angle = Math.abs(Math.acos(dot / (mag1 * mag2)) - Math.PI);
+							double angle = Math.abs(Math.acos(Math.min(1.0, Math.max(-1.0, dot / (mag1 * mag2)))) - Math.PI);
 
 							// 2 tiles per 16th of a turn
 							p1.outset = Math.min(
 								(float) (angle * ((Perspective.LOCAL_TILE_SIZE * 1.75 * 8) / Math.PI)),
 								(float) Math.min(mag1, mag2) / 2f);
-						}
-						else
-						{
-							// sad
 						}
 					}
 

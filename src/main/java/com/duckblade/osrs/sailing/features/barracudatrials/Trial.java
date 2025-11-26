@@ -2,6 +2,7 @@ package com.duckblade.osrs.sailing.features.barracudatrials;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.runelite.api.geometry.Geometry;
@@ -132,6 +133,11 @@ class Trial
 		{
 			// we have to have a checkpoint associated with the last point
 			return crate(-1);
+		}
+
+		Builder j(Function<Builder, Builder> fn)
+		{
+			return fn.apply(this);
 		}
 	}
 }
