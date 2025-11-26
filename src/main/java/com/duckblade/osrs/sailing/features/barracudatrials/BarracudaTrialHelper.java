@@ -5,7 +5,6 @@ import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
 import com.google.common.collect.ImmutableSet;
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.HashMap;
@@ -24,6 +23,7 @@ import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.WorldViewUnloaded;
 import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -36,7 +36,6 @@ public class BarracudaTrialHelper
 	extends Overlay
 	implements PluginLifecycleComponent
 {
-
 	private static final Set<Integer> TRACKED_OBJECTS;
 
 	static
@@ -51,7 +50,7 @@ public class BarracudaTrialHelper
 			.map(j -> j.getObject())
 			.forEach(trackedObjects::add);
 
-		trackedObjects.addAll(TrialData.UNTRACKED_CARGO);
+		trackedObjects.addAll(TrialData.CARGO_OBJECTS);
 
 		trackedObjects.add(
 			ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT
@@ -61,6 +60,7 @@ public class BarracudaTrialHelper
 	}
 
 	private final Client client;
+	private final SailingConfig config;
 
 	private final Map<Integer, GameObject> objects = new HashMap<>();
 
@@ -70,12 +70,11 @@ public class BarracudaTrialHelper
 
 	private Trial activeTrial;
 
-	private Color crateColour;
-
 	@Inject
-	public BarracudaTrialHelper(Client client)
+	public BarracudaTrialHelper(Client client, SailingConfig config)
 	{
 		this.client = client;
+		this.config = config;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_SCENE);
@@ -84,8 +83,7 @@ public class BarracudaTrialHelper
 	@Override
 	public boolean isEnabled(SailingConfig config)
 	{
-		crateColour = config.barracudaHighlightLostCratesColour();
-		return config.barracudaHighlightLostCrates();
+		return config.barracudaHighlightCrates() || config.barracudaHighlightInteractables() || config.barracudaShowPath();
 	}
 
 	@Override
@@ -141,48 +139,61 @@ public class BarracudaTrialHelper
 	@Override
 	public Dimension render(Graphics2D g)
 	{
-		if (trialDBRow == -1)
+		if (trialDBRow == -1 || client.getVarbitValue(VarbitID.SAILING_BT_IN_TRIAL) == 0)
 		{
 			return null;
 		}
 
 		Trial trial = null;
-		if (activeTrial == null
-			|| activeTrial.getDbrow() != trialDBRow
-			|| activeTrial.getTier() != trialRank)
+		if (config.barracudaShowPath())
 		{
-			var td = TrialData.findTrial(trialDBRow, trialRank);
-			if (td != null)
+			if (activeTrial == null
+				|| activeTrial.getDbrow() != trialDBRow
+				|| activeTrial.getTier() != trialRank)
 			{
-				trial = td.buildTrial();
+				var td = TrialData.findTrial(trialDBRow, trialRank);
+				if (td != null)
+				{
+					trial = td.buildTrial();
+				}
+
+				//TODO: activeTrial = trial;
 			}
-
-			//TODO: activeTrial = trial;
+		}
+		else
+		{
+			activeTrial = null;
 		}
 
-		if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+		if (config.barracudaHighlightInteractables())
 		{
-			renderJubbly(g);
+			if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+			{
+				renderJubbly(g);
+			}
 		}
 
-		if (trial == null)
+		if (trial == null && config.barracudaHighlightCrates())
 		{
+			var crateColor = config.barracudaCrateColor();
+
 			for (GameObject o : objects.values())
 			{
-				if (TrialData.UNTRACKED_CARGO.contains(o.getId()))
+				if (TrialData.CARGO_OBJECTS.contains(o.getId()))
 				{
 					ObjectComposition def = SailingUtil.getTransformedObject(client, o);
 					if (def != null)
 					{
-						OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+						OverlayUtil.renderTileOverlay(g, o, "", crateColor);
 					}
 				}
 			}
-
-			return null;
 		}
 
-		renderTrial(trial, g);
+		if (trial != null)
+		{
+			renderTrial(trial, g);
+		}
 
 		return null;
 	}
@@ -204,27 +215,32 @@ public class BarracudaTrialHelper
 
 		var range = checkpoints.get(Math.max(0, i - 3));
 
-		for (; i < checkpoints.size(); i++)
+		if (config.barracudaHighlightCrates())
 		{
-			var ckpt = checkpoints.get(i);
-			if (ckpt.start > range.end)
-			{
-				break;
-			}
+			var crateColor = config.barracudaCrateColor();
 
-			var obj = objects.get(ckpt.objectID);
-			if (obj != null)
+			for (; i < checkpoints.size(); i++)
 			{
-				ObjectComposition def = SailingUtil.getTransformedObject(client, obj);
-				if (def != null)
+				var ckpt = checkpoints.get(i);
+				if (ckpt.start > range.end)
 				{
-					OverlayUtil.renderTileOverlay(g, obj, "", crateColour);
+					break;
+				}
+
+				var obj = objects.get(ckpt.objectID);
+				if (obj != null)
+				{
+					ObjectComposition def = SailingUtil.getTransformedObject(client, obj);
+					if (def != null)
+					{
+						OverlayUtil.renderTileOverlay(g, obj, "", crateColor);
+					}
 				}
 			}
 		}
 
 		g.setStroke(new BasicStroke(2));
-		g.setColor(Color.GREEN);
+		g.setColor(config.barracudaPathColor());
 
 		t.getBoatPath().render(client, g, range.start, range.end);
 	}
@@ -260,7 +276,7 @@ public class BarracudaTrialHelper
 			var cb = obj.getClickbox();
 			if (cb != null)
 			{
-				OverlayUtil.renderPolygon(g, cb, crateColour);
+				OverlayUtil.renderPolygon(g, cb, config.barracudaInteractableColor());
 			}
 		}
 	}

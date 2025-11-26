@@ -3,7 +3,6 @@ package com.duckblade.osrs.sailing.features.barracudatrials;
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -119,7 +118,7 @@ enum TrialData
 		return null;
 	}
 
-	static final Set<Integer> UNTRACKED_CARGO = ImmutableSet.of(
+	static final Set<Integer> CARGO_OBJECTS = ImmutableSet.of(
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_1,
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_2,
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_3,

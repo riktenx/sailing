@@ -289,28 +289,78 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "barracudaHighlightLostCrates",
-		name = "Highlight Crates",
-		description = "Highlight lost crates that need to be collected during Barracuda Trials.",
+		keyName = "barracudaHighlightInteractables",
+		name = "Highlight Interactions",
+		description = "Highlight pillars/boats that need to be interacted with during Barracuda Trials.",
 		section = SECTION_BARRACUDA_TRIALS,
 		position = 1
 	)
-	default boolean barracudaHighlightLostCrates()
+	default boolean barracudaHighlightInteractables()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-		keyName = "barracudaHighlightLostCratesColour",
-		name = "Crate Colour",
-		description = "The colour to highlight lost crates.",
+		keyName = "barracudaInteractableColor",
+		name = "Interaction Color",
+		description = "The color to highlight interactions.",
 		section = SECTION_BARRACUDA_TRIALS,
 		position = 2
 	)
 	@Alpha
-	default Color barracudaHighlightLostCratesColour()
+	default Color barracudaInteractableColor()
 	{
 		return Color.ORANGE;
+	}
+
+	@ConfigItem(
+		keyName = "barracudaHighlightLostCrates",
+		name = "Highlight Crates",
+		description = "Highlight lost crates that need to be collected during Barracuda Trials.",
+		section = SECTION_BARRACUDA_TRIALS,
+		position = 3
+	)
+	default boolean barracudaHighlightCrates()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "barracudaCrateColor",
+		name = "Crate Color",
+		description = "The color to highlight lost crates.",
+		section = SECTION_BARRACUDA_TRIALS,
+		position = 4
+	)
+	@Alpha
+	default Color barracudaCrateColor()
+	{
+		return Color.ORANGE;
+	}
+
+	@ConfigItem(
+		keyName = "barracudaShowPath",
+		name = "Highlight Path",
+		description = "Highlight pillars/boats that need to be interacted with during Barracuda Trials.",
+		section = SECTION_BARRACUDA_TRIALS,
+		position = 5
+	)
+	default boolean barracudaShowPath()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "barracudaPathColor",
+		name = "Path Color",
+		description = "The color to draw the path.",
+		section = SECTION_BARRACUDA_TRIALS,
+		position = 6
+	)
+	@Alpha
+	default Color barracudaPathColor()
+	{
+		return Color.BLUE;
 	}
 
 	@ConfigItem(
