@@ -7,7 +7,7 @@ import net.runelite.api.gameval.ObjectID;
 @RequiredArgsConstructor
 enum TrialInteractable
 {
-	JJ_BOAT(ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT, j -> !j.hasSupplyBoatItem),
+	//JJ_BOAT(ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT, j -> !j.hasSupplyBoatItem),
 	JJ_GREEN(ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_0_PARENT),
 	JJ_YELLOW(ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_1_PARENT),
 	JJ_RED(ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_2_PARENT),
@@ -18,11 +18,11 @@ enum TrialInteractable
 	JJ_WHITE(ObjectID.SAILING_BT_JUBBLY_JIVE_PILLAR_CLICKBOX_7_PARENT),
 	;
 
-	final int object;
-	final Predicate<BarracudaTrialHelper> predicate;
+	//final int object;
+	//final Predicate<BarracudaTrialHelper> predicate;
 
 	TrialInteractable(int object)
 	{
-		this(object, j -> j.client.getObjectDefinition(object).getImpostor().getActions()[0] != null);
+		//this(object, j -> j.client.getObjectDefinition(object).getImpostor().getActions()[0] != null);
 	}
 }

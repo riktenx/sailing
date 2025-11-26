@@ -1,22 +1,28 @@
 package com.duckblade.osrs.sailing.features.barracudatrials;
 
-import com.duckblade.osrs.sailing.features.util.SailingUtil;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.runelite.api.ObjectComposition;
-import net.runelite.client.ui.overlay.OverlayUtil;
+import net.runelite.api.geometry.Geometry;
 
+@Getter
 class Trial
 {
+	@Getter
+	private final int dbrow;
+
+	@Getter
+	private final int tier;
+
 	private final BoatPath boatPath;
 	private final List<Checkpoint> checkpoints;
 
-	public Trial(Trial.Builder builder)
+	public Trial(int dbrow, int tier, Builder builder)
 	{
+		this.dbrow = dbrow;
+		this.tier = tier;
 		this.boatPath = new BoatPath(builder.points);
 		this.checkpoints = builder.checkpoints;
 
@@ -24,14 +30,61 @@ class Trial
 		{
 			var checkpoint = this.checkpoints.get(i);
 			checkpoint.start = builder.checkpointPoints.get(i).start;
-			var ee = builder.points.get(builder.points.size() - 1);
-			checkpoint.end = ee.get(ee.size() - 1).end;//builder.checkpointPoints.get(Math.min(i + 30, this.checkpoints.size() - 1)).end;
-			// TODO intersection check
+			checkpoint.end = builder.checkpointPoints.get(Math.min(i + 10, this.checkpoints.size() - 1)).end;
+
+			List<BoatPath.Point> seg = null;
+			for (var iseg : builder.points)
+			{
+				if (iseg.get(0).start <= checkpoint.start && iseg.get(iseg.size() - 1).end >= checkpoint.start)
+				{
+					seg = iseg;
+					break;
+				}
+			}
+
+			if (seg != null)
+			{
+				int start = 0;
+				for (; start < seg.size(); start++)
+				{
+					if (seg.get(start).start >= checkpoint.start)
+					{
+						break;
+					}
+				}
+
+				int end = start;
+				for (; end < seg.size(); end++)
+				{
+					if (seg.get(start).end > checkpoint.end)
+					{
+						break;
+					}
+				}
+
+			outer:
+				for (int j = Math.max(start - 2, 0) + 1; j < end; j++)
+				{
+					var a = seg.get(j - 1);
+					var b = seg.get(j);
+					for (int k = j + 2; k < end; k++)
+					{
+						var c = seg.get(k - 1);
+						var d = seg.get(k);
+						if (Geometry.lineIntersectionPoint(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y) != null)
+						{
+							checkpoint.end = c.start;
+							break outer;
+						}
+					}
+				}
+			}
 		}
 	}
 
 	@RequiredArgsConstructor
-	private static class Checkpoint
+	@Getter
+	public static class Checkpoint
 	{
 		final int objectID;
 		int start;
@@ -45,12 +98,17 @@ class Trial
 		private final List<BoatPath.Point> checkpointPoints = new ArrayList<>();
 
 		{
-			teleport();
+			this.points.add(new ArrayList<>());
 		}
 
 		Builder pt(float x, float y)
 		{
 			var pts = this.points.get(points.size() - 1);
+			if (pts.size() == 1)
+			{
+				crate(-1);
+			}
+
 			pts.add(new BoatPath.Point(x, y));
 			return this;
 		}
@@ -65,50 +123,20 @@ class Trial
 
 		Builder teleport()
 		{
+			finish();
 			this.points.add(new ArrayList<>());
 			return this;
 		}
-	}
 
-	public void render(Graphics2D g, BarracudaTrialHelper helper)
-	{
-		int i = 0;
-		for (; i < checkpoints.size(); i++)
+		Builder finish()
 		{
-			int obj = checkpoints.get(i).objectID;
-
-			if (obj > -1 && helper.client.getObjectDefinition(obj).getImpostor() != null)
-			{
-				break;
-			}
+			return crate(-1);
 		}
 
-		var range = checkpoints.get(Math.max(0, i - 3));
-
-		for (; i < checkpoints.size(); i++)
+		Stream<Integer> getObjects()
 		{
-			var ckpt = checkpoints.get(i);
-			if (ckpt.end > range.end)
-			{
-				break;
-			}
-
-			var obj = helper.objects.get(ckpt.objectID);
-			if (obj != null)
-			{
-				ObjectComposition def = SailingUtil.getTransformedObject(helper.client, obj);
-				if (def != null)
-				{
-					OverlayUtil.renderTileOverlay(g, obj, "", helper.crateColour);
-				}
-			}
+			return checkpoints.stream()
+				.map(v -> v.objectID);
 		}
-
-		g.setStroke(new BasicStroke(2));
-		g.setColor(Color.GREEN);
-
-		boatPath.render(helper.client, g, range.start, range.end);
-
-
 	}
 }

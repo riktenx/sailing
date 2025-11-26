@@ -130,7 +130,9 @@ class BoatPath
 							double angle = Math.abs(Math.acos(dot / (mag1 * mag2)) - Math.PI);
 
 							// 2 tiles per 16th of a turn
-							p1.outset = (float) (angle * ((Perspective.LOCAL_TILE_SIZE * 2 * 8) / Math.PI));
+							p1.outset = Math.min(
+								(float) (angle * ((Perspective.LOCAL_TILE_SIZE * 1.75 * 8) / Math.PI)),
+								(float) Math.min(mag1, mag2) / 2f);
 						}
 						else
 						{
@@ -174,8 +176,8 @@ class BoatPath
 
 		public Point(float x, float y)
 		{
-			this.x = x * Perspective.LOCAL_TILE_SIZE + Perspective.LOCAL_HALF_TILE_SIZE;
-			this.y = y * Perspective.LOCAL_TILE_SIZE + Perspective.LOCAL_HALF_TILE_SIZE;
+			this.x = x * Perspective.LOCAL_TILE_SIZE;
+			this.y = y * Perspective.LOCAL_TILE_SIZE;
 		}
 	}
 

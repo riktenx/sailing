@@ -1,18 +1,15 @@
 package com.duckblade.osrs.sailing.features.barracudatrials;
 
 import com.duckblade.osrs.sailing.SailingConfig;
+import static com.duckblade.osrs.sailing.features.barracudatrials.TrialData.TRACKED_OBJECTS;
 import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
-import com.google.common.collect.ImmutableSet;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +20,6 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.WorldViewUnloaded;
-import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.Overlay;
@@ -37,209 +33,17 @@ public class BarracudaTrialHelper
 	extends Overlay
 	implements PluginLifecycleComponent
 {
-	private static final Set<Integer> LOST_CARGO_IDS = ImmutableSet.of(
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_1,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_2,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_3,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_4,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_5,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_6,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_7,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_8,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_9,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_10,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_11,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_12,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_13,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_14,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_15,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_16,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_17,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_18,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_19,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_20,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_21,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_22,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_23,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_24,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_25,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_26,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_27,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_28,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_29,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_30,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_31,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_32,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_33,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_34,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_35,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_36,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_37,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_38,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_39,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_40,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_41,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_42,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_43,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_44,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_45,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_46,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_47,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_48,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_49,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_50,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_51,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_52,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_53,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_54,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_55,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_56,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_57,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_58,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_59,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_60,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_61,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_62,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_63,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_64,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_65,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_66,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_67,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_68,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_69,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_70,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_71,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_72,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_73,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_74,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_75,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_76,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_77,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_78,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_79,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_80,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_81,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_82,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_83,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_84,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_85,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_86,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_87,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_88,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_89,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_90,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_91,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_92,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_93,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_94,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_95,
-		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_96,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_2,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_3,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_4,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_5,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_6,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_7,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_8,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_9,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_10,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_11,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_12,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_13,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_14,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_15,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_16,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_17,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_18,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_19,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_20,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_21,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_22,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_23,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_24,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_25,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_26,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_27,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_28,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_29,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_30,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_31,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_32,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_33,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_34,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_35,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_36,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_37,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_38,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_39,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_40,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_41,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_42,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_43,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_44,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_45,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_46,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_47,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_48,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_49,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_50,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_51,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_52,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_53,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_54,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_55,
-		ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_56,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_1,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_2,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_3,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_4,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_5,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_6,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_7,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_8,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_9,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_10,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_11,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_12,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_13,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_14,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_15,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_16,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_17,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_18,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_19,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_20,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_21,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_22,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_23,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_24,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_25,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_26,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_27,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_28,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_29,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_30,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_31,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_32,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_33,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_34,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_35,
-		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_36
-	);
+	private final Client client;
 
-	private final Set<Integer> trackedObjects = LOST_CARGO_IDS;
+	private Color crateColour;
 
-	final Client client;
+	private final Map<Integer, GameObject> objects = new HashMap<>();
 
-	private final Set<GameObject> lostCargo = new HashSet<>();
-	Color crateColour;
+	private int trialDBRow = -1;
+	private int trialRank;
+	private boolean hasSupplyBoatItem;
 
-	final Map<Integer, GameObject> objects = new HashMap<>();
-
-	int trialDBRow = -1;
-	int trialRank;
-	boolean hasSupplyBoatItem;
+	private Trial activeTrial;
 
 	@Inject
 	public BarracudaTrialHelper(Client client)
@@ -261,16 +65,12 @@ public class BarracudaTrialHelper
 	public void shutDown()
 	{
 		trialDBRow = -1;
-		lostCargo.clear();
+		objects.clear();
 	}
 
 	@Subscribe
 	public void onWorldViewUnloaded(WorldViewUnloaded e)
 	{
-		if (e.getWorldView().isTopLevel())
-		{
-			lostCargo.clear();
-		}
 		objects.values().removeIf(go -> go.getWorldView() == e.getWorldView());
 	}
 
@@ -278,11 +78,7 @@ public class BarracudaTrialHelper
 	public void onGameObjectSpawned(GameObjectSpawned e)
 	{
 		GameObject o = e.getGameObject();
-		if (LOST_CARGO_IDS.contains(o.getId()))
-		{
-			lostCargo.add(o);
-		}
-		if (trackedObjects.contains(o.getId()))
+		if (TRACKED_OBJECTS.contains(o.getId()))
 		{
 			objects.put(o.getId(), o);
 		}
@@ -291,7 +87,6 @@ public class BarracudaTrialHelper
 	@Subscribe
 	public void onGameObjectDespawned(GameObjectDespawned e)
 	{
-		lostCargo.remove(e.getGameObject());
 		objects.remove(e.getGameObject().getId());
 	}
 
@@ -319,21 +114,84 @@ public class BarracudaTrialHelper
 	@Override
 	public Dimension render(Graphics2D g)
 	{
-		for (GameObject o : lostCargo)
+		if (trialDBRow == -1)
 		{
-			ObjectComposition def = SailingUtil.getTransformedObject(client, o);
-			if (def != null)
+			return null;
+		}
+
+		Trial trial = null;
+		if (activeTrial == null
+			|| activeTrial.getDbrow() != trialDBRow
+			|| activeTrial.getTier() != trialRank)
+		{
+			var td = TrialData.findTrial(trialDBRow, trialRank);
+			if (td != null)
 			{
-				OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+				trial = td.buildTrial();
+			}
+
+			//TODO: activeTrial = trial;
+		}
+
+		if (trial == null)
+		{
+			for (GameObject o : objects.values())
+			{
+				ObjectComposition def = SailingUtil.getTransformedObject(client, o);
+				if (def != null)
+				{
+					OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+				}
+			}
+
+			return null;
+		}
+
+		renderTrial(trial, g);
+
+		return null;
+	}
+
+	private void renderTrial(Trial t, Graphics2D g)
+	{
+		var checkpoints = t.getCheckpoints();
+
+		int i = 0;
+		for (; i < checkpoints.size(); i++)
+		{
+			int obj = checkpoints.get(i).objectID;
+
+			if (obj > -1 && client.getObjectDefinition(obj).getImpostor() != null)
+			{
+				break;
 			}
 		}
 
-		if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+		var range = checkpoints.get(Math.max(0, i - 3));
+
+		for (; i < checkpoints.size(); i++)
 		{
-			new JubblyJiveTrial().render(g, this);
+			var ckpt = checkpoints.get(i);
+			if (ckpt.start > range.end)
+			{
+				break;
+			}
+
+			var obj = objects.get(ckpt.objectID);
+			if (obj != null)
+			{
+				ObjectComposition def = SailingUtil.getTransformedObject(client, obj);
+				if (def != null)
+				{
+					OverlayUtil.renderTileOverlay(g, obj, "", crateColour);
+				}
+			}
 		}
 
-		return null;
+		g.setStroke(new BasicStroke(2));
+		g.setColor(Color.GREEN);
+
+		t.getBoatPath().render(client, g, range.start, range.end);
 	}
 
 }
