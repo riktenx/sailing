@@ -17,7 +17,6 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayUtil;
 
 public class TrueTileIndicator
 	extends Overlay
@@ -28,10 +27,6 @@ public class TrueTileIndicator
 	private final BoatTracker boatTracker;
 
 	private Color indicatorColor;
-
-	LocalPoint lastPoint;
-	float dx;
-	float dy;
 
 	@Override
 	public boolean isEnabled(SailingConfig config)
@@ -66,20 +61,7 @@ public class TrueTileIndicator
 		LocalPoint lp = we.getTargetLocation();
 		int angle = we.getTargetOrientation();
 
-		if (!lp.equals(lastPoint))
-		{
-			if (lastPoint != null)
-			{
-				dx = (lastPoint.getX() - lp.getX()) / 128.f;
-				dy = (lastPoint.getY() - lp.getY()) / 128.f;
-			}
-			lastPoint = lp;
-		}
-
 		renderBoatArea(client, g, boat, lp, angle);
-
-		var pt = Perspective.localToCanvas(client, we.getLocalLocation(), 0);
-		OverlayUtil.renderTextLocation(g, pt, "(" + dx + ", " + dy + ") d=" + Math.hypot(dx, dy) + " θ=" + angle, indicatorColor);
 		return null;
 	}
 
