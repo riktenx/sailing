@@ -1,15 +1,17 @@
 package com.duckblade.osrs.sailing.features.barracudatrials;
 
 import com.duckblade.osrs.sailing.SailingConfig;
-import static com.duckblade.osrs.sailing.features.barracudatrials.TrialData.TRACKED_OBJECTS;
 import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
+import com.google.common.collect.ImmutableSet;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.WorldViewUnloaded;
+import net.runelite.api.gameval.DBTableID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.Overlay;
@@ -33,9 +36,31 @@ public class BarracudaTrialHelper
 	extends Overlay
 	implements PluginLifecycleComponent
 {
-	private final Client client;
 
-	private Color crateColour;
+	private static final Set<Integer> TRACKED_OBJECTS;
+
+	static
+	{
+		var trackedObjects = ImmutableSet.<Integer>builder();
+
+		Stream.of(TrialData.values())
+			.flatMap(v -> v.getObjects())
+			.forEach(trackedObjects::add);
+
+		Stream.of(JubblyJivePillars.values())
+			.map(j -> j.getObject())
+			.forEach(trackedObjects::add);
+
+		trackedObjects.addAll(TrialData.UNTRACKED_CARGO);
+
+		trackedObjects.add(
+			ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT
+		);
+
+		TRACKED_OBJECTS = trackedObjects.build();
+	}
+
+	private final Client client;
 
 	private final Map<Integer, GameObject> objects = new HashMap<>();
 
@@ -44,6 +69,8 @@ public class BarracudaTrialHelper
 	private boolean hasSupplyBoatItem;
 
 	private Trial activeTrial;
+
+	private Color crateColour;
 
 	@Inject
 	public BarracudaTrialHelper(Client client)
@@ -133,14 +160,22 @@ public class BarracudaTrialHelper
 			//TODO: activeTrial = trial;
 		}
 
+		if (trialDBRow == DBTableID.SailingBtTrialCore.Row.SAILING_BT_JUBBLY_JIVE)
+		{
+			renderJubbly(g);
+		}
+
 		if (trial == null)
 		{
 			for (GameObject o : objects.values())
 			{
-				ObjectComposition def = SailingUtil.getTransformedObject(client, o);
-				if (def != null)
+				if (TrialData.UNTRACKED_CARGO.contains(o.getId()))
 				{
-					OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+					ObjectComposition def = SailingUtil.getTransformedObject(client, o);
+					if (def != null)
+					{
+						OverlayUtil.renderTileOverlay(g, o, "" + (o.getId() - ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1 + 1), Color.WHITE);
+					}
 				}
 			}
 
@@ -192,6 +227,42 @@ public class BarracudaTrialHelper
 		g.setColor(Color.GREEN);
 
 		t.getBoatPath().render(client, g, range.start, range.end);
+	}
+
+	private void renderJubbly(Graphics2D g)
+	{
+		if (!hasSupplyBoatItem)
+		{
+			renderInteractable(g, ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT);
+			return;
+		}
+
+		boolean jubblyBefore = false;
+		for (var pillar : JubblyJivePillars.values())
+		{
+			int state = client.getVarbitValue(pillar.getVarbit());
+			if (state == 3)
+			{
+				jubblyBefore = true;
+			}
+			else if (jubblyBefore && state == 1)
+			{
+				renderInteractable(g, pillar.getObject());
+			}
+		}
+	}
+
+	private void renderInteractable(Graphics2D g, int objectID)
+	{
+		var obj = objects.get(objectID);
+		if (obj != null)
+		{
+			var cb = obj.getClickbox();
+			if (cb != null)
+			{
+				OverlayUtil.renderPolygon(g, cb, crateColour);
+			}
+		}
 	}
 
 }

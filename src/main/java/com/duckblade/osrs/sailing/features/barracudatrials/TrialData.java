@@ -119,7 +119,7 @@ enum TrialData
 		return null;
 	}
 
-	private static final Set<Integer> UNTRACKED_CARGO = ImmutableSet.of(
+	static final Set<Integer> UNTRACKED_CARGO = ImmutableSet.of(
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_1,
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_2,
 		ObjectID.SAILING_BT_GWENITH_GLIDE_COLLECTABLE_3,
@@ -309,8 +309,4 @@ enum TrialData
 		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_35,
 		ObjectID.SAILING_BT_TEMPOR_TANTRUM_COLLECTABLE_36
 	);
-
-	static final Set<Integer> TRACKED_OBJECTS = Stream.concat(Stream.of(TrialData.values())
-			.flatMap(v -> v.getObjects()), UNTRACKED_CARGO.stream())
-		.collect(Collectors.toSet());
 }
