@@ -15,7 +15,7 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = 'latest.release'
+def runeLiteVersion = '1.12.7-SNAPSHOT'
 
 def generateSeaChartTasksSources = sourceSets.create("generateSeaChartTasks")
 configurations.create("generateSeaChartTasks") {

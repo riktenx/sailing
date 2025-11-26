@@ -132,7 +132,8 @@ class BoatPath
 							// 2 tiles per 16th of a turn
 							p1.outset = Math.min(
 								(float) (angle * ((Perspective.LOCAL_TILE_SIZE * 1.75 * 8) / Math.PI)),
-								(float) Math.min(mag1, mag2) / 2f);
+								(float) Math.min(mag1, mag2) / 2f
+							);
 						}
 					}
 
@@ -181,12 +182,14 @@ class BoatPath
 	{
 		var wv = client.getTopLevelWorldView();
 
-		Perspective.modelToCanvas(client, wv,
+		Perspective.modelToCanvas(
+			client, wv,
 			xs.length,
 			wv.getBaseX() * -Perspective.LOCAL_TILE_SIZE, wv.getBaseY() * -Perspective.LOCAL_TILE_SIZE, 0,
 			0,
 			xs, ys, zs,
-			x2ds, y2ds);
+			x2ds, y2ds
+		);
 
 		CubicCurve2D.Float curve = new CubicCurve2D.Float();
 

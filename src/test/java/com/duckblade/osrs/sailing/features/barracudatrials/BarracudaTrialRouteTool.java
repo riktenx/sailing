@@ -1,5 +1,6 @@
 package com.duckblade.osrs.sailing.features.barracudatrials;
 
+import com.duckblade.osrs.sailing.features.util.BoatTracker;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
 import com.google.inject.Inject;
 import java.awt.BasicStroke;
@@ -9,17 +10,24 @@ import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 import lombok.SneakyThrows;
 import net.runelite.api.Client;
 import net.runelite.api.MenuAction;
 import net.runelite.api.Perspective;
+import net.runelite.api.Point;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.CommandExecuted;
+import net.runelite.api.events.GameObjectDespawned;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -27,15 +35,17 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleComponent
 {
 	private final Client client;
+	private final BoatTracker boatTracker;
 
 	private List<Object> points = new ArrayList<>();
 
 	private Point2D.Float hoveredPoint;
 
 	@Inject
-	BarracudaTrialRouteTool(Client client)
+	BarracudaTrialRouteTool(Client client, BoatTracker boatTracker)
 	{
 		this.client = client;
+		this.boatTracker = boatTracker;
 
 		setPosition(OverlayPosition.DYNAMIC);
 	}
@@ -56,6 +66,54 @@ public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleC
 	{
 		this.points.add(obj);
 		return this;
+	}
+
+	private Point2D.Float lastPoint;
+
+	@Subscribe
+	private void onGameTick(GameTick e)
+	{
+		var boat = boatTracker.getBoat();
+		var we = boat.getWorldEntity();
+		var trueloc = we.getTargetLocation();
+
+		var wp = WorldPoint.fromLocal(client, trueloc);
+		float locdx = trueloc.getX() % 128;
+		float locdy = trueloc.getY() % 128;
+
+		var point = new Point2D.Float(wp.getX() + locdx / 128, wp.getY() + locdy / 128);
+
+		if (!point.equals(lastPoint))
+		{
+			points.add(point);
+			print();
+		}
+
+		lastPoint = point;
+	}
+
+	private final int baseCrateVarbit = VarbitID.SAILING_BT_OBJECTIVE0;
+	private final int maxCrateVarbit = VarbitID.SAILING_BT_OBJECTIVE95;
+	private final int baseJJCrateId = ObjectID.SAILING_BT_JUBBLY_JIVE_COLLECTABLE_1;
+
+	@Subscribe
+	private void onVarbitChanged(VarbitChanged e)
+	{
+		var id = e.getVarbitId();
+		if (id < baseCrateVarbit || id > maxCrateVarbit)
+		{
+			return;
+		}
+
+		// 0 = taken
+		// 1 = not taken
+		// BEWARE that when you reset trial, all the varbs go to 0 and then to 1 for some reason
+		// so if you reset trial you also need to ::btr
+		if (e.getValue() == 0)
+		{
+			points.add(baseJJCrateId + id - baseCrateVarbit);
+			print();
+		}
 	}
 
 	@Subscribe
@@ -249,7 +307,7 @@ public class BarracudaTrialRouteTool extends Overlay implements PluginLifecycleC
 				g.setColor(Color.BLACK);
 				if (a != null && b != null)
 				{
-					g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
+					//g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
 				}
 			}
 		}
