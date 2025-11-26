@@ -42,19 +42,15 @@ public class BarracudaTrialHelper
 	{
 		var trackedObjects = ImmutableSet.<Integer>builder();
 
-		Stream.of(TrialData.values())
-			.flatMap(v -> v.getObjects())
-			.forEach(trackedObjects::add);
-
-		Stream.of(JubblyJivePillars.values())
-			.map(j -> j.getObject())
-			.forEach(trackedObjects::add);
-
 		trackedObjects.addAll(TrialData.CARGO_OBJECTS);
 
 		trackedObjects.add(
 			ObjectID.SAILING_BT_JUBBLY_JIVE_TOAD_SUPPLIES_PARENT
 		);
+
+		Stream.of(JubblyJivePillars.values())
+			.map(j -> j.getObject())
+			.forEach(trackedObjects::add);
 
 		TRACKED_OBJECTS = trackedObjects.build();
 	}

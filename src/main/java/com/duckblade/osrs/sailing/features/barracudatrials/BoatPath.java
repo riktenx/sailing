@@ -48,7 +48,7 @@ class BoatPath
 				}
 
 				// we split the line up into segments about 3 tiles in length
-				// so long lines don't get culled when too close to the camrea
+				// so long lines don't get culled when too close to the camera
 
 				float segments = Math.max(1, Math.round((len - combinedOutset) / LINE_SEG_LEN));
 
@@ -186,7 +186,6 @@ class BoatPath
 		var wv = client.getTopLevelWorldView();
 
 		Perspective.modelToCanvas(client, wv,
-			//1 + (this.ops[end] >>> IDX_SHIFT),
 			xs.length,
 			wv.getBaseX() * -Perspective.LOCAL_TILE_SIZE, wv.getBaseY() * -Perspective.LOCAL_TILE_SIZE, 0,
 			0,

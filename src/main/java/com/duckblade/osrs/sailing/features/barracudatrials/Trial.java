@@ -2,7 +2,6 @@ package com.duckblade.osrs.sailing.features.barracudatrials;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.runelite.api.geometry.Geometry;
@@ -62,7 +61,7 @@ class Trial
 					}
 				}
 
-			outer:
+				outer:
 				for (int j = Math.max(start - 2, 0) + 1; j < end; j++)
 				{
 					var a = seg.get(j - 1);
@@ -106,6 +105,7 @@ class Trial
 			var pts = this.points.get(points.size() - 1);
 			if (pts.size() == 1)
 			{
+				// we have to have a checkpoint associated with the first point
 				crate(-1);
 			}
 
@@ -130,13 +130,8 @@ class Trial
 
 		Builder finish()
 		{
+			// we have to have a checkpoint associated with the last point
 			return crate(-1);
-		}
-
-		Stream<Integer> getObjects()
-		{
-			return checkpoints.stream()
-				.map(v -> v.objectID);
 		}
 	}
 }
