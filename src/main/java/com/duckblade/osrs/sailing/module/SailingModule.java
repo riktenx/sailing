@@ -23,6 +23,7 @@ import com.duckblade.osrs.sailing.features.oceanencounters.GiantClam;
 import com.duckblade.osrs.sailing.features.oceanencounters.LostShipment;
 import com.duckblade.osrs.sailing.features.oceanencounters.MysteriousGlow;
 import com.duckblade.osrs.sailing.features.oceanencounters.OceanMan;
+import com.duckblade.osrs.sailing.features.salvaging.SalvagingHighlight;
 import com.duckblade.osrs.sailing.features.util.BoatTracker;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.AbstractModule;
@@ -65,6 +66,7 @@ public class SailingModule extends AbstractModule
 		OceanMan oceanMan,
 		PrioritizeCargoHold prioritizeCargoHold,
 		RapidsOverlay rapidsOverlay,
+		SalvagingHighlight salvagingHighlight,
 		SeaChartOverlay seaChartOverlay,
 		SeaChartPanelOverlay seaChartPanelOverlay,
 		SeaChartTaskIndex seaChartTaskIndex,
@@ -90,6 +92,7 @@ public class SailingModule extends AbstractModule
 			.add(oceanMan)
 			.add(prioritizeCargoHold)
 			.add(rapidsOverlay)
+			.add(salvagingHighlight)
 			.add(seaChartOverlay)
 			.add(seaChartPanelOverlay)
 			.add(seaChartTaskIndex)
