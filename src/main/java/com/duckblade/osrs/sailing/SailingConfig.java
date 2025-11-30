@@ -109,11 +109,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "safeRapidsColour",
-			name = "Safe Rapids Colour",
-			description = "Colour to highlight safely navigable rapids.",
-			section = SECTION_NAVIGATION,
-			position = 2
+		keyName = "safeRapidsColour",
+		name = "Safe Rapids Colour",
+		description = "Colour to highlight safely navigable rapids.",
+		section = SECTION_NAVIGATION,
+		position = 2
 	)
 	@Alpha
 	default Color safeRapidsColor()
@@ -122,11 +122,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "dangerousRapidsColour",
-			name = "Dangerous Rapids Colour",
-			description = "Colour to highlight unnavigable dangerous rapids.",
-			section = SECTION_NAVIGATION,
-			position = 3
+		keyName = "dangerousRapidsColour",
+		name = "Dangerous Rapids Colour",
+		description = "Colour to highlight unnavigable dangerous rapids.",
+		section = SECTION_NAVIGATION,
+		position = 3
 	)
 	@Alpha
 	default Color dangerousRapidsColour()
@@ -135,11 +135,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "unknownRapidsColour",
-			name = "Unknown Rapids Colour",
-			description = "Colour to highlight rapids rapids unknown to be navigable or not.",
-			section = SECTION_NAVIGATION,
-			position = 4
+		keyName = "unknownRapidsColour",
+		name = "Unknown Rapids Colour",
+		description = "Colour to highlight rapids rapids unknown to be navigable or not.",
+		section = SECTION_NAVIGATION,
+		position = 4
 	)
 	@Alpha
 	default Color unknownRapidsColour()
@@ -148,11 +148,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "highlightLightningCloudStrikes",
-			name = "Highlight Lightning Cloud Strikes",
-			description = "Highlights the lightning clouds that are about to strike and should be avoided",
-			section = SECTION_NAVIGATION,
-			position = 5
+		keyName = "highlightLightningCloudStrikes",
+		name = "Highlight Lightning Cloud Strikes",
+		description = "Highlights the lightning clouds that are about to strike and should be avoided",
+		section = SECTION_NAVIGATION,
+		position = 5
 	)
 	default boolean highlightLightningCloudStrikes()
 	{
@@ -160,11 +160,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "lightningCloudStrikeColour",
-			name = "Lightning Strike Colour",
-			description = "Colour to highlight lightning cloud strikes. Colour will appear darker when about to strike.",
-			section = SECTION_NAVIGATION,
-			position = 6
+		keyName = "lightningCloudStrikeColour",
+		name = "Lightning Strike Colour",
+		description = "Colour to highlight lightning cloud strikes. Colour will appear darker when about to strike.",
+		section = SECTION_NAVIGATION,
+		position = 6
 	)
 	@Alpha
 	default Color lightningCloudStrikeColour()
@@ -437,11 +437,11 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "barracudaHidePortalTransitions",
-			name = "Hide Portal Transitions",
-			description = "Hide the transition animation when taking a portal in The Gwenith Glide.",
-			section = SECTION_BARRACUDA_TRIALS,
-			position = 3
+		keyName = "barracudaHidePortalTransitions",
+		name = "Hide Portal Transitions",
+		description = "Hide the transition animation when taking a portal in The Gwenith Glide.",
+		section = SECTION_BARRACUDA_TRIALS,
+		position = 3
 	)
 	default boolean barracudaHidePortalTransitions()
 	{
