@@ -1,7 +1,6 @@
 package com.duckblade.osrs.sailing.features.mes;
 
 import com.duckblade.osrs.sailing.SailingConfig;
-import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -31,7 +30,8 @@ public class HideStopNavigatingDuringTrials implements PluginLifecycleComponent
 
 	@Subscribe
 	public void onMenuEntryAdded(MenuEntryAdded e)
-	{if (client.getVarbitValue(VarbitID.SAILING_BT_IN_TRIAL) == 0)
+	{
+		if (client.getVarbitValue(VarbitID.SAILING_BT_IN_TRIAL) == 0)
 		{
 			return;
 		}
