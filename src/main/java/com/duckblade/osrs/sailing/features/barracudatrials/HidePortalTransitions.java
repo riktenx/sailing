@@ -3,13 +3,17 @@ package com.duckblade.osrs.sailing.features.barracudatrials;
 import com.duckblade.osrs.sailing.SailingConfig;
 import com.duckblade.osrs.sailing.features.util.SailingUtil;
 import com.duckblade.osrs.sailing.module.PluginLifecycleComponent;
-import java.util.Arrays;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.events.ScriptPreFired;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.widgets.Widget;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
@@ -18,9 +22,12 @@ import net.runelite.client.eventbus.Subscribe;
 public class HidePortalTransitions
 	implements PluginLifecycleComponent
 {
-	private static final int SCRIPT_PORTAL_TRANSITION_EFFECT = 5986;
 
 	private final Client client;
+	private final ClientThread clientThread;
+
+	// fixes a jarring half-snap during course start
+	private boolean wasInTrial;
 
 	@Override
 	public boolean isEnabled(SailingConfig config)
@@ -29,19 +36,35 @@ public class HidePortalTransitions
 	}
 
 	@Subscribe
-	public void onScriptPreFired(ScriptPreFired event)
+	public void onGameTick(GameTick e)
 	{
-		if (event.getScriptId() != SCRIPT_PORTAL_TRANSITION_EFFECT)
-		{
-			return;
-		}
+		// not using onVarbitChanged due to event ordering
+		wasInTrial = client.getVarbitValue(VarbitID.SAILING_BT_IN_TRIAL) != 0;
+	}
 
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded e)
+	{
 		if (!SailingUtil.isSailing(client))
 		{
 			return;
 		}
 
-		Arrays.fill(event.getScriptEvent().getArguments(), 0);
+		if (!wasInTrial)
+		{
+			return;
+		}
+
+		if (e.getGroupId() != InterfaceID.GOTR_OVERLAY &&
+			e.getGroupId() != InterfaceID.FADE_OVERLAY)
+		{
+			return;
+		}
+
+		Widget w = client.getWidget(e.getGroupId(), 0);
+		assert w != null;
+
+		clientThread.invokeLater(() -> w.setHidden(true));
 	}
 
 }
