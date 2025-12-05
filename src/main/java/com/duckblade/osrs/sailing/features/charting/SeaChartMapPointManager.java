@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
@@ -19,9 +20,21 @@ import net.runelite.client.ui.overlay.worldmap.WorldMapPoint;
 import net.runelite.client.ui.overlay.worldmap.WorldMapPointManager;
 import net.runelite.client.util.ImageUtil;
 
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class SeaChartMapPointManager implements PluginLifecycleComponent
 {
+	private static final BufferedImage MAP_GENERIC = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "generic.png");
+	private static final BufferedImage MAP_GENERIC_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "generic_complete.png");
 	private static final BufferedImage MAP_SPYGLASS = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "spyglass.png");
+	private static final BufferedImage MAP_SPYGLASS_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "spyglass_complete.png");
+	private static final BufferedImage MAP_CRATE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "crate.png");
+	private static final BufferedImage MAP_CRATE_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "crate_complete.png");
+	private static final BufferedImage MAP_DUCK = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "duck.png");
+	private static final BufferedImage MAP_DUCK_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "duck_complete.png");
+	private static final BufferedImage MAP_MERMAID = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "mermaid.png");
+	private static final BufferedImage MAP_MERMAID_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "mermaid_complete.png");
+	private static final BufferedImage MAP_WEATHER = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "weather.png");
+	private static final BufferedImage MAP_WEATHER_COMPLETE = ImageUtil.loadImageResource(SeaChartMapPointManager.class, "weather_complete.png");
 
 	private final Map<Integer, ChartMapPoint> taskByVarb = Stream.of(SeaChartTask.values())
 		.collect(ImmutableMap.toImmutableMap(SeaChartTask::getCompletionVarb, ChartMapPoint::new));
@@ -34,7 +47,7 @@ public class SeaChartMapPointManager implements PluginLifecycleComponent
 		ChartMapPoint(SeaChartTask task)
 		{
 			super(WorldMapPoint.builder()
-				.image(MAP_SPYGLASS)
+				.image(getIcon(task))
 				.worldPoint(task.getLocation())
 				.tooltip("Charting spot (" + task.getType().getName() + ")"));
 			this.task = task;
@@ -43,6 +56,7 @@ public class SeaChartMapPointManager implements PluginLifecycleComponent
 		void reconcile()
 		{
 			boolean show = !mode.isHidden(task.isComplete(client), taskIndex.hasTaskRequirement(task));
+			setImage(getIcon(task));
 			if (added != show)
 			{
 				if (show)
@@ -59,17 +73,10 @@ public class SeaChartMapPointManager implements PluginLifecycleComponent
 		}
 	}
 
-	@Inject
-	private Client client;
-
-	@Inject
-	private ClientThread clientThread;
-
-	@Inject
-	private WorldMapPointManager worldMapPointManager;
-
-	@Inject
-	private SeaChartTaskIndex taskIndex;
+	private final Client client;
+	private final ClientThread clientThread;
+	private final WorldMapPointManager worldMapPointManager;
+	private final SeaChartTaskIndex taskIndex;
 
 	private SailingConfig.ShowChartsMode mode;
 
@@ -153,5 +160,31 @@ public class SeaChartMapPointManager implements PluginLifecycleComponent
 				e.reconcile();
 			}
 		});
+	}
+
+	private BufferedImage getIcon(SeaChartTask task)
+	{
+		boolean completed = client != null && task.isComplete(client);
+		switch (task.getType())
+		{
+			case SPYGLASS:
+				return completed ? MAP_SPYGLASS_COMPLETE : MAP_SPYGLASS;
+
+			case DRINK_CRATE:
+				return completed ? MAP_CRATE_COMPLETE : MAP_CRATE;
+
+			case CURRENT_DUCK:
+				return completed ? MAP_DUCK_COMPLETE : MAP_DUCK;
+
+			case MERMAID_GUIDE:
+				return completed ? MAP_MERMAID_COMPLETE : MAP_MERMAID;
+
+			case WEATHER:
+				return completed ? MAP_WEATHER_COMPLETE : MAP_WEATHER;
+
+			case GENERIC:
+			default:
+				return completed ? MAP_GENERIC_COMPLETE : MAP_GENERIC;
+		}
 	}
 }
