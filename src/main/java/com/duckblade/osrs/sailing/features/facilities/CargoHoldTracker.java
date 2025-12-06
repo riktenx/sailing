@@ -26,14 +26,17 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
+import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Point;
+import net.runelite.api.Skill;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.OverheadTextChanged;
+import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
@@ -69,6 +72,14 @@ public class CargoHoldTracker
 	private static final String MSG_CREWMATE_SALVAGE_FULL = "The cargo hold is full. I can't salvage anything.";
 	private static final String WIDGET_TEXT_CARGO_HOLD_EMPTY = "This cargo hold has no items to show here.";
 
+	private static final Set<String> JENKINS_MESSAGES = ImmutableSet.of(
+		"Wooo.",
+		"Woooo wooo.",
+		"Woooo wooo wooo.",
+		"Woooo wooooo woooo.",
+		"Woooo wooo wooooo woooo."
+	);
+
 	private static final Set<Integer> CARGO_INVENTORY_IDS = ImmutableSet.of(
 		InventoryID.SAILING_BOAT_1_CARGOHOLD,
 		InventoryID.SAILING_BOAT_2_CARGOHOLD,
@@ -100,6 +111,9 @@ public class CargoHoldTracker
 	private boolean sawItemContainerUpdate;
 	private boolean sawInventoryContainerUpdate;
 
+	private int lastXp;
+	private boolean pendingJenkinsAction;
+
 	@Inject
 	public CargoHoldTracker(Client client, ConfigManager configManager, BoatTracker boatTracker, CourierTaskTracker courierTaskTracker)
 	{
@@ -113,12 +127,6 @@ public class CargoHoldTracker
 	}
 
 	@Override
-	public void startUp()
-	{
-		loadAllFromConfig();
-	}
-
-	@Override
 	public boolean isEnabled(SailingConfig config)
 	{
 		// always on for tracking events, conditionally display
@@ -127,10 +135,22 @@ public class CargoHoldTracker
 	}
 
 	@Override
+	public void startUp()
+	{
+		loadAllFromConfig();
+
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			lastXp = client.getSkillExperience(Skill.SAILING);
+		}
+	}
+
+	@Override
 	public void shutDown()
 	{
 		cargoHoldItems.clear();
 		memoizedInventory = null;
+		pendingJenkinsAction = false;
 	}
 
 	@Override
@@ -181,13 +201,34 @@ public class CargoHoldTracker
 		if (MSG_CREWMATE_SALVAGES.equals(e.getOverheadText()))
 		{
 			// todo different ones? doesn't matter now since it's count only but will matter later
+			log.trace("crewmate salvage");
 			cargoHold().add(ItemID.SAILING_SMALL_SHIPWRECK_SALVAGE);
 			writeToConfig();
+			return;
 		}
 
 		if (MSG_CREWMATE_SALVAGE_FULL.equals(e.getOverheadText()))
 		{
 			cargoHold().add(UNKNOWN_ITEM, maxCapacity() - usedCapacity());
+			writeToConfig();
+			return;
+		}
+
+		if (JENKINS_MESSAGES.contains(e.getOverheadText()))
+		{
+			pendingJenkinsAction = true;
+		}
+	}
+
+	@Subscribe
+	public void onStatChanged(StatChanged e)
+	{
+		if (e.getSkill() == Skill.SAILING &&
+			lastXp != (lastXp = e.getXp()) &&
+			pendingJenkinsAction)
+		{
+			log.trace("jenkins salvage");
+			cargoHold().add(ItemID.SAILING_SMALL_SHIPWRECK_SALVAGE);
 			writeToConfig();
 		}
 	}
@@ -233,6 +274,8 @@ public class CargoHoldTracker
 	@Subscribe
 	public void onGameTick(GameTick e)
 	{
+		pendingJenkinsAction = false;
+
 		if (--pendingInventoryAction < 0)
 		{
 			sawItemContainerUpdate = false;
