@@ -784,18 +784,6 @@ public interface SailingConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "cargoHoldDummy",
-		name = "Under Development",
-		description = "This feature is still under development and will be released soon.",
-		section = SECTION_CARGO_HOLD_TRACKING,
-		position = -999
-	)
-	default boolean cargoHoldDummy()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 		keyName = "cargoHoldShowCounts",
 		name = "Show Item Count",
 		description = "Shows total item counts over the cargo hold.",
